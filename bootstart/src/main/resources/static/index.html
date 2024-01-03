@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Insert title here</title>
+</head>
+
+<body>
+    <h1>Hello 메롱</h1>
+    <button id="getBtn">GET방식</button>
+    <button id="postBtn">POST방식</button>
+    <button id="putBtn">PUT방식</button>
+    <script>
+        // IE11을 지원해야 한다고하면, let, const는 배제 오직 var만 사용
+        const getBtn = document.querySelector("#getBtn");
+        const postBtn = document.querySelector("#postBtn");
+        const putBtn = document.querySelector("#putBtn");
+
+        const fPut = () => {
+
+            let data = [
+                { name: "안지수", alias: "배우" },
+                { name: "안로제", alias: "목소리" },
+                { name: "안제니", alias: "흥" },
+                { name: "안리사", alias: "춤" },
+            ]
+
+
+            let xhr = new XMLHttpRequest();     // 통신 대신해줄 사람
+
+            xhr.open("put", "/myPut", true);       // 요청 내용
+            // ☆전송되는 내용의 포맷을 서버에게 알려줌(가장 많이 쓰는 json형식). 안그러면 서버에서 null
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = () => {    // 진행상태 파악
+                if (xhr.readyState == 4 && xhr.status == 200) {  // 통신 완료!
+                    console.log("항상 돌아온 값 확인 : ", JSON.parse(xhr.responseText));
+                }
+            }
+            xhr.send(JSON.stringify(data)); // 실행. ☆객체를 넘길 땐 꼭 문자열로(시리얼라이즈)
+        }
+
+        const fPost = () => {
+
+            let data = [
+                { name: "지수", alias: "배우" },
+                { name: "로제", alias: "목소리" },
+                { name: "제니", alias: "흥" },
+                { name: "리사", alias: "춤" },
+            ]
+
+
+            let xhr = new XMLHttpRequest();     // 통신 대신해줄 사람
+
+            xhr.open("post", "/myPost", true);       // 요청 내용
+            // ☆전송되는 내용의 포맷을 서버에게 알려줌(가장 많이 쓰는 json형식). 안그러면 서버에서 null
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = () => {    // 진행상태 파악
+                if (xhr.readyState == 4 && xhr.status == 200) {  // 통신 완료!
+                    console.log("항상 돌아온 값 확인 : ", xhr.responseText);    // 응답(문자열)을 객체로
+                }
+            }
+            xhr.send(JSON.stringify(data)); // 실행. ☆객체를 넘길 땐 꼭 문자열로(시리얼라이즈)
+        }
+
+        const fGet = () => {
+            let xhr = new XMLHttpRequest();     // 통신 대신해줄 사람
+            xhr.open("get", "/home?merong=메롱&huk=헉", true);       // 요청 내용
+            xhr.onreadystatechange = () => {    // 진행상태 파악
+                if (xhr.readyState == 4 && xhr.status == 200) {  // 통신 완료!
+                    console.log("항상 돌아온 값 확인 : ", JSON.parse(xhr.responseText));    // 응답(문자열)을 객체로
+                }
+            }
+            xhr.send(); // 실행
+        }
+
+        getBtn.addEventListener("click", fGet);
+        postBtn.addEventListener("click", fPost);
+        putBtn.addEventListener("click", fPut);
+    </script>
+</body>
+
+</html>

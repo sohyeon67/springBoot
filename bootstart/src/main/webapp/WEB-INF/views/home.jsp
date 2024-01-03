@@ -1,0 +1,13 @@
+<%@ page language="java" contentType="text/html; charset=EUC-KR"
+    pageEncoding="EUC-KR"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<p>µð¹ö±ë ${myName }</p>
+<h1>¹ÎÃ¤ Â¯</h1>
+</body>
+</html>
