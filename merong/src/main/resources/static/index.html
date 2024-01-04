@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>RESTFUL API 테스트</title>
+<style>
+	* {
+		box-sizing: border-box;
+	}
+	#wrapper {
+		text-align: center;
+	}
+	#list {
+		width:70%;
+		height: 400px;
+		border:5px solid rgb(166, 0, 255);
+		overflow: auto;
+	}
+	#toolbar{
+		width:70%;
+		border:5px solid orange;
+		padding-bottom: 5%;
+		
+		/*height: 50px;*/
+	}
+	div {
+		margin: 0 auto;
+		min-width: 400px;
+	}
+	input[type=button] {
+		/* 아래로 9px 이동 크기 1.3배 */
+		transform: translateY(9px) scale(1.3); 
+	}
+	#muTable {
+		margin: 0 auto;
+	}
+</style>
+</head>
+<body>
+<div id="wrapper">
+	<h1>RESTFUL API 테스통</h1>
+	<div id="list"></div>
+	<div id="toolbar">
+		<br>
+		<form>
+			<table id="muTable">
+				<tr>
+					<td>넘</td>
+					<td><input type="text" name="sujinNum" value="" ></td>
+				</tr>
+				<tr>
+					<td>이름</td>
+					<td><input type="text" name="sujinName" value="" ></td>
+				</tr>
+				<tr>
+					<td>내용</td>
+					<td><input type="text" name="sujinContent" value="" ></td>
+				</tr>
+				<tr>
+					<td>파일</td>
+					<td><input type="text" name="sujinFile" value="" ></td>
+				</tr>
+			</table>
+		</form>
+		<input type="button" value="입력" onclick="fPostInput()">&nbsp;&nbsp;
+		<input type="button" value="수정" onclick="fPutUpdate()">&nbsp;&nbsp;
+		<input type="button" value="삭제" onclick="fDeleteDel()">&nbsp;&nbsp;
+	</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script>
+	const myForm = document.forms[0];
+	const myList = document.querySelector("#list");
+
+	// 기능 함수
+	// 테이블 TR 요런건 기본으로 제공하는 게 좋음
+	const fTrClickMouseOverOut = ()=>{
+		let trs = document.querySelectorAll("tr");
+		for(let i=0; i<trs.length; i++){			
+			trs[i].addEventListener("mouseover",()=>{
+				trs[i].style.backgroundColor = "black";
+				trs[i].style.color = "orange";
+			});
+
+			trs[i].addEventListener("mouseout",function(){
+				this.style.backgroundColor="white";
+				this.style.color = "black";
+				this.style.fontWeight = "normal";
+			});
+		}
+	}
+
+	// 테이블 맹그는 함수
+	const fMakeTable = (sujins) =>{
+		let tableStr = `<table border=1 style="width:100%"><tbody>`;
+		tableStr += `<tr><th>Num</th><th>Name</th><th>Content</th><th>File</th></tr>`;
+		for(let i=0; i<sujins.length; i++){
+			let sujin = sujins[i];
+			tableStr += `<tr onclick="fGetOne(${sujin.sujinNum})">`;
+		    tableStr += `<td>${sujin.sujinNum}</td>`;		
+		    tableStr += `<td>${sujin.sujinName}</td>`;		
+		    tableStr += `<td>${sujin.sujinContent}</td>`;		
+		    tableStr += `<td>${sujin.sujinFile}</td>`;		
+			tableStr += `</tr>`;
+		}
+		tableStr += `<tr></tbody></table>`;
+		myList.innerHTML = tableStr;
+		
+		//테이블이 동적으로 새로 맹글어지므로, TR이벤트도 그때마당
+		fTrClickMouseOverOut();
+	}
+
+
+	// 백엔드 Restful SujinController에 대응하는 함수들
+	// get으로 list(sujins)가져오깅
+	const fGetList = ()=>{
+		$.ajax({
+			type: "get",
+			url: "/api/sujins",
+			dataType: "json",
+			success: function(rslt) {
+				console.log("항상 결과확인:", rslt);
+				fMakeTable(rslt);
+			}
+		})
+	}
+	fGetList(); // 그냥 바로 리스트 콜!
+
+	// get으로 1개 row(sujin) 가져오깅
+	const fGetOne = (sujinNum)=>{
+		$.ajax({
+			type:"get",
+			url:`/api/sujins/${sujinNum}`,
+			dataType:"json",
+			success:function(rslt) {
+				console.log("결과", rslt);
+				// form에 출력
+				myForm.sujinNum.value = rslt.sujinNum;
+				myForm.sujinName.value = rslt.sujinName;
+				myForm.sujinContent.value = rslt.sujinContent;
+				myForm.sujinFile.value = rslt.sujinFile;
+			}
+		})
+	}
+
+	// post로 insert 1개 row(sujin) 
+	const fPostInput = ()=>{
+		let sujinVO = {
+			// sujinNum:	// 자동 시퀀스 생성이라 필요없음
+			sujinName:myForm.sujinName.value,
+			sujinContent:myForm.sujinContent.value,
+			sujinFile:myForm.sujinFile.value
+		}
+		console.log("sujinVO", sujinVO);	// 항상 눈으로 값이 잘 들어갔는지 체크!
+
+		$.ajax({
+			type:"post",
+			url:"/api/sujins",
+			contentType:"application/json;charset=UTF-8",	// json형식 문자열 보냄을 표시
+			data:JSON.stringify(sujinVO),	// 객체를 그냥 넘기면 안됨!
+			dataType:"text",	// 돌아오는 값이 단순 숫자. JSON.parse하면 안됨
+			success: function(rslt) {
+				console.log("체킁", rslt);
+				if(rslt == 1) {
+					alert("정말 잘 입력되었네용");
+					// tr태그만 한개 만들어서 추가해도 되고 
+					fGetList();	// 리스트 다시 뿌리깅!
+					setTimeout(() => {
+						myList.scrollTo(0, myList.scrollHeight);	// 스크롤 끝으로 내리기
+					}, 50);
+				}
+			}
+		})
+	}
+
+	// put으로 update 수정 부르깅
+	const fPutUpdate = ()=>{
+		let sujinVO = {
+			sujinNum:myForm.sujinNum.value,
+			sujinName:myForm.sujinName.value,
+			sujinContent:myForm.sujinContent.value,
+			sujinFile:myForm.sujinFile.value
+		}
+		console.log("sujinVO", sujinVO);	// 항상 눈으로 값이 잘 들어갔는지 체크!
+
+		$.ajax({
+			type:"put",
+			url:"/api/sujins",
+			contentType:"application/json",
+			data:JSON.stringify(sujinVO),
+			dataType:"text",
+			success:function(rslt) {
+				console.log("체킁", rslt);
+				if(rslt == 1) {
+					alert("잘 수정되었을 걸 DB 확인해봥");
+					fGetList();	// 새로고침
+				}
+			}
+		})
+	}
+
+	// delete 메소드로 요청해서 지우깅
+	const fDeleteDel = ()=>{
+		let seqNum = myForm.sujinNum.value;
+
+		$.ajax({
+			type:"delete",
+			url:`/api/sujins/${seqNum}`,
+			dataType:"text",
+			success:function(rslt) {
+				if(rslt == 1) {
+					alert("잘 지워졌어용");
+					fGetList();	// 리스트 새로 고침
+				}
+			} 
+		})
+	}
+</script>
+</body>
+</html>
