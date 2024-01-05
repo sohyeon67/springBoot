@@ -60,15 +60,103 @@
 					<td>파일</td>
 					<td><input type="text" name="sujinFile" value="" ></td>
 				</tr>
+				<tr>
+					<td>파일선택</td>
+					<td><input type="file" myFile multiple name="sujinFile2" value="" ></td>
+				</tr>
 			</table>
 		</form>
+		<div id="merong">
+		</div>
 		<input type="button" value="입력" onclick="fPostInput()">&nbsp;&nbsp;
 		<input type="button" value="수정" onclick="fPutUpdate()">&nbsp;&nbsp;
 		<input type="button" value="삭제" onclick="fDeleteDel()">&nbsp;&nbsp;
+		<input type="button" value="파일업" onclick="fFileUp()">&nbsp;&nbsp;
+		<input type="button" value="jQ파일업" onclick="jQFileUp()">&nbsp;&nbsp;
 	</div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 <script>
+	const merong = document.querySelector("#merong");
+	// 내가 마음대로 지정한 속성을 가진 애들을 가져옴
+	const sujinFile2 = document.querySelector("[myFile]");
+
+	function jQFileUp() {
+		console.log("항상 체크", sujinFile2.files);	// FileList
+
+		// ajax로 파일 보낼 땐 FormData가 필요!
+		let formData = new FormData();	// 전송방식이 무조건 multipart/form-data
+		formData.append("mc", sujinFile2.files[0]);	// 실제 파일 객체
+
+		// jQuery는 default로 contentType을 application/x-www-form-urlencoded로 지정
+		// default 값을 process(후처리)
+		$.ajax({
+			type:"post",
+			url:"/api/sfile",
+			contentType:false,	// 파일 전송시 필수
+			processData:false,	// 파일 전송시 필수
+			cache:false,		// 요건 옵션, 전송 캐쉬하지마
+			data:formData,
+			dataType:"text",
+			success:function(rslt) {
+				console.log("체크:", rslt);
+				let $img = $("<img>");
+				$img.attr("src", rslt);
+				$img.css("width", "100px").css("height", "100px").css("display", "block");
+
+				let $aTag = $("<a>");
+				$aTag.attr("href", rslt);
+				$aTag.html("다운로드");
+				// 한가지 주의!!!, Cross-Origin 제약사항이 있음
+				// 내 서버에 있는 것만 다운로드가 되고, 다른 사이트껀 안됨(창이 열림)
+				let pathArr = rslt.split("/");
+				$aTag.attr("download", pathArr[pathArr.length-1]);	// 마지막꺼
+
+				// 제이쿼리 변수는 항상 박스임 제이쿼리 객체
+				console.log("체에크:",$img);
+				console.log("체에크:",$img[0]);
+				console.log("체에크:",$aTag[0]);
+				merong.appendChild($img[0]);	// 화면에 붙여넣기
+				merong.appendChild($aTag[0]);	// 화면에 붙여넣기
+				//$aTag.click();	// 그냥 클릭 (이건 장난!) 업로드 하자마자 다운
+			}
+		})
+	}
+
+
+	function fFileUp() {
+		console.log("항상 체크", sujinFile2.files);	// FileList
+
+		// ajax로 파일 보낼 땐 FormData가 필요!
+		let formData = new FormData();	// 전송방식이 무조건 multipart/form-data
+		formData.append("mc", sujinFile2.files[0]);	// 실제 파일 객체
+
+		let xhr = new XMLHttpRequest();
+		xhr.open("post", "/api/sfile", true);
+		xhr.onreadystatechange = function() {
+			if(xhr.readyState == 4 && xhr.status == 200) {
+				console.log("체크:", xhr.responseText);
+				let img = document.createElement("img");
+				img.src = xhr.responseText;
+				img.width=100; img.height=100;
+				img.style.display = "block";	// 옆에 아무도 못 오겡! 혼자 한줄
+
+				let aTag = document.createElement("a");
+				aTag.href = xhr.responseText;
+				aTag.innerHTML = "다운로드";
+				// 한가지 주의!!!, Cross-Origin 제약사항이 있음
+				// 내 서버에 있는 것만 다운로드가 되고, 다른 사이트껀 안됨(창이 열림)
+				let pathArr = xhr.responseText.split("/");
+				aTag.download = pathArr[pathArr.length-1];	// 마지막꺼
+
+				merong.appendChild(img);	// 화면에 붙여넣기
+				merong.appendChild(aTag);	// 화면에 붙여넣기
+				//aTag.click();	// 그냥 클릭 (이건 장난!) 업로드 하자마자 다운
+			}
+		}
+		xhr.send(formData);
+	}
+
 	const myForm = document.forms[0];
 	const myList = document.querySelector("#list");
 
@@ -96,12 +184,15 @@
 		tableStr += `<tr><th>Num</th><th>Name</th><th>Content</th><th>File</th></tr>`;
 		for(let i=0; i<sujins.length; i++){
 			let sujin = sujins[i];
-			tableStr += `<tr onclick="fGetOne(${sujin.sujinNum})">`;
-		    tableStr += `<td>${sujin.sujinNum}</td>`;		
-		    tableStr += `<td>${sujin.sujinName}</td>`;		
-		    tableStr += `<td>${sujin.sujinContent}</td>`;		
-		    tableStr += `<td>${sujin.sujinFile}</td>`;		
-			tableStr += `</tr>`;
+			tableStr += `<tr onclick="fGetOne(${sujin.sujinNum})">
+		    				<td>${sujin.sujinNum}</td>	
+		    				<td>${sujin.sujinName}</td>	
+		    				<td>${sujin.sujinContent}</td>	
+		    				<td><a href="${sujin.sujinFile}" download="다운.jpg">
+								<img src="${sujin.sujinFile}" width=50 height=50>
+							 </a>
+						 	</td>
+						 </tr>`;
 		}
 		tableStr += `<tr></tbody></table>`;
 		myList.innerHTML = tableStr;
@@ -143,6 +234,7 @@
 		})
 	}
 
+	/* 파일없이 보낼때
 	// post로 insert 1개 row(sujin) 
 	const fPostInput = ()=>{
 		let sujinVO = {
@@ -158,6 +250,44 @@
 			url:"/api/sujins",
 			contentType:"application/json;charset=UTF-8",	// json형식 문자열 보냄을 표시
 			data:JSON.stringify(sujinVO),	// 객체를 그냥 넘기면 안됨!
+			dataType:"text",	// 돌아오는 값이 단순 숫자. JSON.parse하면 안됨
+			success: function(rslt) {
+				console.log("체킁", rslt);
+				if(rslt == 1) {
+					alert("정말 잘 입력되었네용");
+					// tr태그만 한개 만들어서 추가해도 되고 
+					fGetList();	// 리스트 다시 뿌리깅!
+					setTimeout(() => {
+						myList.scrollTo(0, myList.scrollHeight);	// 스크롤 끝으로 내리기
+					}, 50);
+				}
+			}
+		})
+	}
+	*/
+
+	// 파일도 같이 보낼 때★
+	// post로 insert 1개 row(sujin) 
+	const fPostInput = ()=>{
+		// 아작스 파일 전송시 무조건 FormData 필요, 전송 인코딩 방식문제!
+
+		let formData = new FormData();	// 매개변수로 form객체를 주면 자동으로 입력
+		formData.append("sujinName", myForm.sujinName.value);
+		formData.append("sujinContent", myForm.sujinContent.value);
+		formData.append("sujinFile2", myForm.sujinFile2.files[0]);	// 여러 파일이라면 같은 키값으로 for문돌려 추가?
+
+		// formData에 들어있는 값 눈으로 확인!
+		for(let [key,value] of formData) {
+			console.log("체킁:", key, value);
+		}
+
+		$.ajax({
+			type:"post",
+			url:"/api/sujins",
+			contentType:false,	// 필수
+			processData:false,	// 필수
+			cache:false,		// 요건 옵션
+			data:formData,		// 문자열(시리얼라이즈)화 하면 안됨
 			dataType:"text",	// 돌아오는 값이 단순 숫자. JSON.parse하면 안됨
 			success: function(rslt) {
 				console.log("체킁", rslt);
