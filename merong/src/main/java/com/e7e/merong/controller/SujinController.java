@@ -62,12 +62,12 @@ public class SujinController {
 		log.debug("체크 sujinVO {}", sujinVO);
 		
 		MultipartFile recFile = sujinVO.getSujinFile2();
-		String baseFolder = "c:/myUpload/";
-		String fileName = recFile.getOriginalFilename();
-		recFile.transferTo(new File(baseFolder + fileName));
+		String baseFolder = "c:/myUpload/";		// 실제로 저장될 폴더
+		String fileName = recFile.getOriginalFilename();	// 파일이름
+		recFile.transferTo(new File(baseFolder + fileName));	// 파일 복사
 		
 		String webBase = "/mcimg/";
-		sujinVO.setSujinFile(webBase + fileName);
+		sujinVO.setSujinFile(webBase + fileName);	// DB에 '/mcimg/파일명' 형태로 저장된다.
 		
 		return sujinService.insertSujin(sujinVO);
 	}

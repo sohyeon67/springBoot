@@ -13,6 +13,6 @@ public class SujinVO {
 	private int sujinNum;
 	private String sujinName;
 	private String sujinContent;
-	private String sujinFile;
-	private MultipartFile sujinFile2;
+	private String sujinFile;			// 파일 경로 ex) /mcimg/호랑이.jpg
+	private MultipartFile sujinFile2;	// form태그의 file
 }
